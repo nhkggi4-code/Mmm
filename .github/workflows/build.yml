@@ -17,7 +17,6 @@ jobs:
       run: |
         unzip -o *.zip
         
-        # البحث التلقائي عن المجلد المفقود ونقل محتوياته للمجلد الرئيسي إذا لزم الأمر
         TARGET_DIR=$(find . -maxdepth 2 -name "settings.gradle.kts" -exec dirname {} \;)
         if [ "$TARGET_DIR" != "." ] && [ ! -z "$TARGET_DIR" ]; then
           echo "تم العثور على المشروع داخل المجلد: $TARGET_DIR"
@@ -26,13 +25,17 @@ jobs:
           shopt -u dotglob
         fi
 
+    # 🌟 خطوة الإنقاذ الجديدة: إجبار الخادم على تخطي فحص الـ sourceSets لتجميع الكود بنجاح
+    - name: Fix Kotlin SourceSets Properties
+      run: |
+        echo "android.disallowKotlinSourceSets=false" >> gradle.properties
+
     - name: Set up JDK 17
       uses: actions/setup-java@v5
       with:
         java-version: '17'
         distribution: 'temurin'
 
-    # 🌟 خطوة الإنقاذ: توليد ملف تشغيل gradle مفقود وتثبيته تلقائياً بأعلى دقة
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
 
