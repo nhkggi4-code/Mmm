@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ "main", "رئيسي" ] # تم إضافة فرع "رئيسي" ليتوافق مع مستودعك
+    branches: [ "main", "رئيسي" ]
   workflow_dispatch:
 
 jobs:
@@ -18,25 +18,33 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle # تسريع عملية البناء عبر التخزين المؤقت
+        cache: gradle
 
-    - name: Unzip project files
+    - name: Unzip and Structure Project Files
       run: |
-        # فك الضغط داخل المجلد الحالي
+        # 1. فك ضغط أي ملف .zip موجود في المستودع
         unzip -o *.zip
         
-        # نقل الملفات من المجلد الفرعي إلى المجلد الرئيسي لتشغيل الكومبايلر بشكل صحيح
-        mv عبداللهعبده/* . || true
-        mv عبداللهعبده/.* . || true
+        # 2. البحث التلقائي عن المجلد المفقود ونقل محتوياته للمجلد الرئيسي
+        # هذه الخطوة تبحث عن المجلد الذي يحتوي على ملف settings.gradle.kts أو build.gradle.kts
+        TARGET_DIR=$(find . -maxdepth 2 -name "settings.gradle.kts" -exec dirname {} \;)
         
-        # إعطاء صلاحيات التشغيل لملف البناء
+        if [ "$TARGET_DIR" != "." ]; then
+          echo "تم العثور على المشروع داخل المجلد: $TARGET_DIR"
+          # نقل كافة الملفات والمجلدات المخفية والعادية إلى المجلد الرئيسي للمستودع
+          shopt -s dotglob
+          mv "$TARGET_DIR"/* . || true
+          shopt -u dotglob
+        fi
+
+        # 3. إعطاء صلاحيات التشغيل
         chmod +x gradlew
 
     - name: Build APK
       run: ./gradlew assembleDebug
 
     - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4 # تحديث للإصدار v4 الأحدث والأسرع
+      uses: actions/upload-artifact@v4
       with:
         name: WhatsApp-Legend-APK
         path: app/build/outputs/apk/debug/app-debug.apk
