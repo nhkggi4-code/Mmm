@@ -25,25 +25,25 @@ jobs:
           shopt -u dotglob
         fi
 
-    # 🌟 تعديل متقدم: التأكد من إنشاء الملف وحقن السطر في البداية والنهاية لضمان تفعيله
     - name: Fix Kotlin SourceSets Properties
       run: |
         touch gradle.properties
         echo "android.disallowKotlinSourceSets=false" >> gradle.properties
-        cat gradle.properties
 
     - name: Set up JDK 17
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+    # 🌟 خطوة الحسم: إنشاء ملف تشغيل مستقر وتجنب إصدار 9.7 التجريبي
+    - name: Generate Stable Gradle Wrapper
+      run: |
+        gradle wrapper --gradle-version 8.10.2
+        chmod +x gradlew
 
-    # 🌟 تعديل لتسهيل القراءة: إضافة أمر طباعة الأخطاء والمشاكل بشكل صريح ومباشر (stacktrace)
-    - name: Build APK
-      run: gradle assembleDebug --stacktrace --no-daemon
+    - name: Build APK with Stable Wrapper
+      run: ./gradlew assembleDebug --stacktrace
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
