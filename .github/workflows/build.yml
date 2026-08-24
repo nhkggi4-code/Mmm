@@ -29,6 +29,8 @@ jobs:
       run: |
         touch gradle.properties
         echo "android.disallowKotlinSourceSets=false" >> gradle.properties
+        # إضافة سطر إضافي لحل مشاكل تعارض مكتبة الجيل الجديد لـ KSP والأندرويد
+        echo "ksp.allow.all.descriptor.classes=true" >> gradle.properties
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -36,14 +38,14 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    # 🌟 خطوة الحسم: إنشاء ملف تشغيل مستقر وتجنب إصدار 9.7 التجريبي
     - name: Generate Stable Gradle Wrapper
       run: |
         gradle wrapper --gradle-version 8.10.2
         chmod +x gradlew
 
+    # 🌟 التعديل الحاسم: تشغيل بوضعية معلومات تفصيلية --info لإظهار اسم الملف والإضافة التالفة فوراً
     - name: Build APK with Stable Wrapper
-      run: ./gradlew assembleDebug --stacktrace
+      run: ./gradlew assembleDebug --info --stacktrace
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
